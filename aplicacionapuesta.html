@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Xami Bets - Apuestas de Fútbol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://www.transparenttextures.com/patterns/soccer-field.png') repeat, #228B22; /* Fondo de campo de fútbol */
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #FFD700; /* Dorado para título */
+            text-shadow: 2px 2px 4px #000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .hidden { display: none; }
+        .bet-card {
+            background: #fff;
+            color: #333;
+            padding: 15px;
+            margin: 10px auto;
+            max-width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: perspective(1000px) rotateY(0deg); /* Efecto 3D básico */
+            transition: transform 0.3s;
+        }
+        .bet-card:hover {
+            transform: perspective(1000px) rotateY(5deg); /* Rotación 3D al hover */
+        }
+        .win { background: #4CAF50; color: white; } /* Verde para ganada */
+        .loss { background: #F44336; color: white; } /* Rojo para perdida */
+        .void { background: #9E9E9E; color: white; } /* Gris para anulada */
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background: #FFD700;
+            color: #000;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #FFC107;
+        }
+        #login {
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        nav button {
+            background: #228B22;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        nav button:hover {
+            background: #006400;
+        }
+        .bet-img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Xami Bets ⚽</h1>
+        <p>Apuestas Deportivas de Fútbol - Temática Fútbol</p>
+    </header>
+
+    <nav>
+        <button onclick="showSection('home')">Inicio</button>
+        <button onclick="showSection('free-bets')">Apuestas Gratis (3)</button>
+        <button onclick="showSection('risky-bets')">Apuestas Arriesgadas (3)</button>
+        <button onclick="toggleAdmin()">Admin</button>
+    </nav>
+
+    <!-- Sección Inicio -->
+    <section id="home" class="section">
+        <h2>Bienvenido a The Xami Bets</h2>
+        <p>¡Ve las apuestas de fútbol gratuitas y arriesgadas! Solo el admin puede editar o eliminar.</p>
+        <img src="https://img.icons8.com/color/96/000000/soccer-ball.png" alt="Balón de Fútbol"> <!-- Icono de balón -->
+    </section>
+
+    <!-- Apuestas Gratis -->
+    <section id="free-bets" class="section hidden">
+        <h2>Apuestas Gratis (Máx. 3)</h2>
+        <div id="free-bets-list"></div>
+    </section>
+
+    <!-- Apuestas Arriesgadas -->
