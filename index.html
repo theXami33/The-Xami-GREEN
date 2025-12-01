@@ -449,4 +449,241 @@
         <footer>
             <p data-translate="footer_text">© 2024 Xami Green - Predicciones Deportivas | Juega responsablemente</p>
         </footer>
-    </div
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            es: {
+                age_warning: 'Advertencia +18',
+                age_text: 'Este sitio contiene información sobre apuestas deportivas. Debe ser mayor de 18 años para continuar.',
+                age_confirm: 'Soy mayor de 18 años',
+                nickname_title: 'Elige tu Nickname',
+                nickname_text: 'Ingresa el nombre con el que aparecerás en el chat',
+                nickname_confirm: 'Confirmar',
+                admin_panel: 'Panel Admin',
+                confident_bets: 'Apuestas Confianza',
+                risky_bets: 'Apuestas Arriesgadas',
+                no_predictions: 'No hay predicciones disponibles',
+                chat_title: '💬 Chat Comunitario',
+                chat_placeholder: 'Escribe tu mensaje...',
+                send_btn: 'Enviar',
+                footer_text: '© 2024 Xami Green - Predicciones Deportivas | Juega responsablemente'
+            },
+            en: {
+                age_warning: '+18 Warning',
+                age_text: 'This site contains sports betting information. You must be over 18 years old to continue.',
+                age_confirm: 'I am over 18 years old',
+                nickname_title: 'Choose your Nickname',
+                nickname_text: 'Enter the name you will appear with in the chat',
+                nickname_confirm: 'Confirm',
+                admin_panel: 'Admin Panel',
+                confident_bets: 'Confident Bets',
+                risky_bets: 'Risky Bets',
+                no_predictions: 'No predictions available',
+                chat_title: '💬 Community Chat',
+                chat_placeholder: 'Write your message...',
+                send_btn: 'Send',
+                footer_text: '© 2024 Xami Green - Sports Predictions | Play responsibly'
+            },
+            pt: {
+                age_warning: 'Aviso +18',
+                age_text: 'Este site contém informações sobre apostas esportivas. Você deve ter mais de 18 anos para continuar.',
+                age_confirm: 'Tenho mais de 18 anos',
+                nickname_title: 'Escolha seu Apelido',
+                nickname_text: 'Digite o nome com que aparecerá no chat',
+                nickname_confirm: 'Confirmar',
+                admin_panel: 'Painel Admin',
+                confident_bets: 'Apostas Confiantes',
+                risky_bets: 'Apostas Arriscadas',
+                no_predictions: 'Nenhuma previsão disponível',
+                chat_title: '💬 Chat Comunitário',
+                chat_placeholder: 'Escreva sua mensagem...',
+                send_btn: 'Enviar',
+                footer_text: '© 2024 Xami Green - Previsões Esportivas | Jogue com responsabilidade'
+            }
+        };
+
+        let currentLang = 'es';
+        
+        // Chat colors (excluding yellow for admin)
+        const chatColors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
+            '#98D8C8', '#F38181', '#95E1D3', '#AA96DA', 
+            '#FCBAD3', '#A8D8EA', '#FC9D9A', '#83D475'
+        ];
+
+        // Check age verification on load
+        window.onload = function() {
+            if (!localStorage.getItem('ageVerified')) {
+                document.getElementById('ageModal').style.display = 'flex';
+            }
+            
+            // Check nickname
+            checkNickname();
+            
+            // Load predictions and chat
+            loadPredictions();
+            loadChat();
+        };
+
+        function confirmAge() {
+            localStorage.setItem('ageVerified', 'true');
+            document.getElementById('ageModal').style.display = 'none';
+            checkNickname();
+        }
+
+        function checkNickname() {
+            if (!localStorage.getItem('userNickname')) {
+                document.getElementById('nicknameModal').style.display = 'flex';
+            }
+        }
+
+        function setNickname() {
+            const nickname = document.getElementById('nicknameInput').value.trim();
+            if (nickname.length > 0) {
+                localStorage.setItem('userNickname', nickname);
+                
+                // Assign color (yellow only for Admin)
+                let color;
+                if (nickname.toLowerCase() === 'admin') {
+                    color = '#FFD700';
+                } else {
+                    color = chatColors[Math.floor(Math.random() * chatColors.length)];
+                }
+                localStorage.setItem('userColor', color);
+                
+                document.getElementById('nicknameModal').style.display = 'none';
+            } else {
+                alert('Por favor ingresa un nickname válido');
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const nickname = localStorage.getItem('userNickname');
+            
+            if (message && nickname) {
+                const chat = JSON.parse(localStorage.getItem('chat') || '[]');
+                const color = localStorage.getItem('userColor');
+                
+                chat.push({
+                    nickname: nickname,
+                    message: message,
+                    color: color,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                localStorage.setItem('chat', JSON.stringify(chat));
+                input.value = '';
+                loadChat();
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function loadChat() {
+            const chat = JSON.parse(localStorage.getItem('chat') || '[]');
+            const container = document.getElementById('chatMessages');
+            
+            container.innerHTML = chat.map(msg => `
+                <div class="chat-message">
+                    <div class="message-author" style="color: ${msg.color}">${msg.nickname}</div>
+                    <div class="message-text">${msg.message}</div>
+                    <div class="message-time">${msg.timestamp}</div>
+                </div>
+            `).join('');
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function loadPredictions() {
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            
+            const confianza = predictions.filter(p => p.type === 'confianza');
+            const arriesgadas = predictions.filter(p => p.type === 'arriesgadas');
+            
+            displayPredictions('confianzaContainer', confianza);
+            displayPredictions('arriesgadasContainer', arriesgadas);
+        }
+
+        function displayPredictions(containerId, predictions) {
+            const container = document.getElementById(containerId);
+            
+            if (predictions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">${containerId === 'confianzaContainer' ? '⭐' : '⚡'}</div>
+                        <p data-translate="no_predictions">No hay predicciones disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = predictions.map(pred => `
+                <div class="prediction-card ${pred.status || 'pending'}">
+                    <div class="match-info">
+                        <div class="teams">
+                            <img src="${pred.logo1 || 'https://via.placeholder.com/30'}" alt="Team 1" class="team-logo">
+                            <span>${pred.team1} vs ${pred.team2}</span>
+                            <img src="${pred.logo2 || 'https://via.placeholder.com/30'}" alt="Team 2" class="team-logo">
+                        </div>
+                        <div class="match-datetime">
+                            ${pred.date} - ${pred.time}
+                        </div>
+                    </div>
+                    <div class="prediction-details">
+                        <p><strong>Predicción:</strong> ${pred.prediction}</p>
+                        ${pred.odds ? `<p><strong>Cuota:</strong> ${pred.odds}</p>` : ''}
+                        ${pred.status ? `<span class="status-badge ${pred.status}">${getStatusText(pred.status)}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                won: '✓ Ganada',
+                lost: '✗ Perdida',
+                void: '⊘ Anulada',
+                pending: '⏳ Pendiente'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function changeLang() {
+            const selector = document.getElementById('langSelector');
+            currentLang = selector.value;
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-translate-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+        }
+        
+        // Reload chat and predictions every 5 seconds
+        setInterval(() => {
+            loadChat();
+            loadPredictions();
+        }, 5000);
+    </script>
+</body>
+</html>
