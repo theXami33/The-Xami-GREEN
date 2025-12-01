@@ -685,5 +685,101 @@
             loadPredictions();
         }, 5000);
     </script>
-</body>
-</html>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
+        const firebaseConfig = {
+            apiKey: "TU-API-KEY-AQUI",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto-id",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:xxxxxxxxxxxx"
+        };
+        
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Resto de tu código JavaScript...
+        
+        // MODIFICAR FUNCIÓN sendMessage() para usar Firebase:
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const nickname = localStorage.getItem('userNickname');
+            
+            if (message && nickname) {
+                const color = localStorage.getItem('userColor');
+                
+                // Guardar en Firebase en lugar de localStorage
+                db.collection('chat').add({
+                    nickname: nickname,
+                    message: message,
+                    color: color,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    input.value = '';
+                }).catch(error => {
+                    console.error("Error al enviar mensaje:", error);
+                });
+            }
+        }
+        
+        // MODIFICAR loadChat() para leer desde Firebase:
+        function loadChat() {
+            const container = document.getElementById('chatMessages');
+            
+            // Escuchar cambios en tiempo real
+            db.collection('chat')
+              .orderBy('timestamp', 'asc')
+              .limit(50)
+              .onSnapshot(snapshot => {
+                  let messages = [];
+                  snapshot.forEach(doc => {
+                      const data = doc.data();
+                      if (data.timestamp) {
+                          messages.push({
+                              nickname: data.nickname,
+                              message: data.message,
+                              color: data.color,
+                              time: data.timestamp.toDate().toLocaleTimeString()
+                          });
+                      }
+                  });
+                  
+                  container.innerHTML = messages.map(msg => `
+                      <div class="chat-message">
+                          <div class="message-author" style="color: ${msg.color}">${msg.nickname}</div>
+                          <div class="message-text">${msg.message}</div>
+                          <div class="message-time">${msg.time}</div>
+                      </div>
+                  `).join('');
+                  
+                  container.scrollTop = container.scrollHeight;
+              });
+        }
+        
+        // MODIFICAR loadPredictions() para leer desde Firebase:
+        function loadPredictions() {
+            db.collection('predictions')
+              .onSnapshot(snapshot => {
+                  let predictions = [];
+                  snapshot.forEach(doc => {
+                      predictions.push({
+                          id: doc.id,
+                          ...doc.data()
+                      });
+                  });
+                  
+                  const confianza = predictions.filter(p => p.type === 'confianza');
+                  const arriesgadas = predictions.filter(p => p.type === 'arriesgadas');
+                  
+                  displayPredictions('confianzaContainer', confianza);
+                  displayPredictions('arriesgadasContainer', arriesgadas);
+              });
+        }
+
