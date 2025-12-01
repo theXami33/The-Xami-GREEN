@@ -515,6 +515,20 @@
 
         // Check age verification on load
         window.onload = function() {
+            // Paso 6: Rastrear país del visitante y guardar cada visita en Firebase
+if (typeof db !== "undefined" && db) {
+  fetch('https://ipapi.co/json/')
+    .then(response => response.json())
+    .then(data => {
+        db.collection('visitors').add({
+            country: data.country_name,
+            city: data.city,
+            ip: data.ip,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    });
+}
+
             if (!localStorage.getItem('ageVerified')) {
                 document.getElementById('ageModal').style.display = 'flex';
             }
