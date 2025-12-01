@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xami Green - Predicciones Deportivas</title>
     <style>
@@ -34,12 +35,14 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
         .logo {
-            font-size: 2em;
-            font-weight: bold;
-            color: #00ff88;
-            text-shadow: 0 0 10px #00ff88;
+    font-size: 2em;
+    font-weight: bold;
+    font-family: 'Reem Kufi', sans-serif;
+    color: #00ff88;
+    text-shadow: 0 0 10px #00ff88;
+}
+
         }
         
         .header-controls {
@@ -395,7 +398,7 @@
 
     <div class="container">
         <header>
-            <div class="logo">XAMI GREEN</div>
+            <div class="logo">XAMI GREEN PRONOSTICOS</div>
             <div class="header-controls">
                 <select class="lang-selector" id="langSelector" onchange="changeLang()">
                     <option value="es">🇪🇸 ES</option>
@@ -441,7 +444,10 @@
             <div class="chat-header" data-translate="chat_title">💬 Chat Comunitario</div>
             <div class="chat-messages" id="chatMessages"></div>
             <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu mensaje..." data-translate-placeholder="chat_placeholder">
+                <input <button class="emoji-btn" onclick="showEmojiPicker()">😊</button>
+<button class="gif-btn" onclick="showGifInput()">GIF</button>
+<button onclick="changeNickname()">Cambiar Nick</button>
+ type="text" class="chat-input" id="chatInput" placeholder="Escribe tu mensaje..." data-translate-placeholder="chat_placeholder">
                 <button class="send-btn" onclick="sendMessage()" data-translate="send_btn">Enviar</button>
             </div>
         </div>
@@ -574,14 +580,51 @@ if (typeof db !== "undefined" && db) {
         }
 
         function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            const nickname = localStorage.getItem('userNickname');
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    const nickname = localStorage.getItem('userNickname');
+
+            function showEmojiPicker() {
+    const emoji = prompt("Escribe o copia el emoji que deseas:");
+    if (emoji) {
+        const input = document.getElementById('chatInput');
+        input.value += emoji;
+        input.focus();
+    }
+}
+
+function showGifInput() {
+    const gifUrl = prompt("Introduce la URL de tu GIF (.gif):");
+    if (gifUrl && gifUrl.endsWith('.gif') && !containsForbidden(gifUrl)) {
+        const input = document.getElementById('chatInput');
+        input.value += ' ' + gifUrl;
+        input.focus();
+    }
+}
+
+function changeNickname() {
+    document.getElementById('nicknameModal').style.display = 'flex';
+}
+
+
+    if (containsForbidden(message) || containsForbidden(nickname)) {
+        alert('No se permiten links ni nombres de Telegram.');
+        return;
+    }
+    
+}
+
             
             if (message && nickname) {
                 const chat = JSON.parse(localStorage.getItem('chat') || '[]');
                 const color = localStorage.getItem('userColor');
-                
+
+                function containsForbidden(content) {
+    const forbidden = ['http://', 'https://', 'www.', '.com', '.net', '.org', 'telegram', 't.me'];
+    content = content.toLowerCase();
+    return forbidden.some(f => content.includes(f));
+}
+
                 chat.push({
                     nickname: nickname,
                     message: message,
@@ -607,11 +650,11 @@ if (typeof db !== "undefined" && db) {
             const container = document.getElementById('chatMessages');
             
             container.innerHTML = chat.map(msg => `
-                <div class="chat-message">
-                    <div class="message-author" style="color: ${msg.color}">${msg.nickname}</div>
-                    <div class="message-text">${msg.message}</div>
-                    <div class="message-time">${msg.timestamp}</div>
-                </div>
+                <div class="message-text">
+    ${msg.message.includes('.gif')
+        ? `<img src="${msg.message}" alt="GIF" style="max-width:200px; max-height:200px;">`
+        : msg.message}
+</div>
             `).join('');
             
             // Scroll to bottom
