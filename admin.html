@@ -434,4 +434,239 @@
                 password: 'Contraseña',
                 login_btn: 'Iniciar Sesión',
                 home: 'Inicio',
-                logout: 'Cer
+                logout: 'Cerrar Sesión'
+            }
+        };
+
+        let currentLang = 'es';
+        
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (username === 'admin' && password === 'jyd711') {
+                localStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadPredictions();
+                loadStats();
+            } else {
+                errorDiv.textContent = 'Usuario o contraseña incorrectos';
+            }
+        }
+
+        // Check if already logged in
+        window.onload = function() {
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadPredictions();
+                loadStats();
+            }
+        };
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('adminLoggedIn');
+            location.reload();
+        }
+
+        // Add prediction
+        function addPrediction() {
+            const type = document.getElementById('predictionType').value;
+            const team1 = document.getElementById('team1').value;
+            const team2 = document.getElementById('team2').value;
+            const logo1 = document.getElementById('logo1').value;
+            const logo2 = document.getElementById('logo2').value;
+            const matchDate = document.getElementById('matchDate').value;
+            const matchTime = document.getElementById('matchTime').value;
+            const prediction = document.getElementById('prediction').value;
+            const odds = document.getElementById('odds').value;
+            
+            if (!team1 || !team2 || !matchDate || !matchTime || !prediction) {
+                document.getElementById('addMessage').innerHTML = '<p class="error-message">Por favor completa todos los campos obligatorios</p>';
+                return;
+            }
+            
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            
+            const newPrediction = {
+                id: Date.now(),
+                type: type,
+                team1: team1,
+                team2: team2,
+                logo1: logo1 || 'https://via.placeholder.com/30',
+                logo2: logo2 || 'https://via.placeholder.com/30',
+                date: matchDate,
+                time: matchTime,
+                prediction: prediction,
+                odds: odds,
+                status: 'pending'
+            };
+            
+            predictions.push(newPrediction);
+            localStorage.setItem('predictions', JSON.stringify(predictions));
+            
+            document.getElementById('addMessage').innerHTML = '<p class="success-message">✓ Predicción añadida correctamente</p>';
+            
+            // Clear form
+            document.getElementById('team1').value = '';
+            document.getElementById('team2').value = '';
+            document.getElementById('logo1').value = '';
+            document.getElementById('logo2').value = '';
+            document.getElementById('matchDate').value = '';
+            document.getElementById('matchTime').value = '';
+            document.getElementById('prediction').value = '';
+            document.getElementById('odds').value = '';
+            
+            loadPredictions();
+            loadStats();
+            
+            setTimeout(() => {
+                document.getElementById('addMessage').innerHTML = '';
+            }, 3000);
+        }
+
+        // Load predictions
+        function loadPredictions() {
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            
+            const confianza = predictions.filter(p => p.type === 'confianza');
+            const arriesgadas = predictions.filter(p => p.type === 'arriesgadas');
+            
+            displayPredictionsList('confianzaList', confianza);
+            displayPredictionsList('arriesgadasList', arriesgadas);
+        }
+
+        function displayPredictionsList(containerId, predictions) {
+            const container = document.getElementById(containerId);
+            
+            if (predictions.length === 0) {
+                container.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">No hay predicciones</p>';
+                return;
+            }
+            
+            container.innerHTML = predictions.map(pred => `
+                <div class="prediction-item">
+                    <div class="prediction-info">
+                        <div class="prediction-title">
+                            ${pred.team1} vs ${pred.team2}
+                        </div>
+                        <div class="prediction-details">
+                            📅 ${pred.date} • ⏰ ${pred.time}
+                        </div>
+                        <div class="prediction-details">
+                            🎯 ${pred.prediction} ${pred.odds ? `• Cuota: ${pred.odds}` : ''}
+                        </div>
+                        <div class="prediction-details">
+                            Estado: <strong>${getStatusText(pred.status)}</strong>
+                        </div>
+                    </div>
+                    <div class="prediction-actions">
+                        <button class="action-btn btn-won" onclick="markStatus(${pred.id}, 'won')">✓ Ganada</button>
+                        <button class="action-btn btn-lost" onclick="markStatus(${pred.id}, 'lost')">✗ Perdida</button>
+                        <button class="action-btn btn-void" onclick="markStatus(${pred.id}, 'void')">⊘ Anulada</button>
+                        <button class="action-btn btn-delete" onclick="deletePrediction(${pred.id})">🗑️ Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                won: '✓ Ganada',
+                lost: '✗ Perdida',
+                void: '⊘ Anulada',
+                pending: '⏳ Pendiente'
+            };
+            return statusTexts[status] || status;
+        }
+
+        // Mark prediction status
+        function markStatus(id, status) {
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            const index = predictions.findIndex(p => p.id === id);
+            
+            if (index !== -1) {
+                predictions[index].status = status;
+                localStorage.setItem('predictions', JSON.stringify(predictions));
+                loadPredictions();
+                loadStats();
+            }
+        }
+
+        // Delete prediction
+        function deletePrediction(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta predicción?')) {
+                const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+                const filtered = predictions.filter(p => p.id !== id);
+                localStorage.setItem('predictions', JSON.stringify(filtered));
+                loadPredictions();
+                loadStats();
+            }
+        }
+
+        // Load statistics
+        function loadStats() {
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            const chat = JSON.parse(localStorage.getItem('chat') || '[]');
+            
+            const total = predictions.length;
+            const won = predictions.filter(p => p.status === 'won').length;
+            const lost = predictions.filter(p => p.status === 'lost').length;
+            const pending = predictions.filter(p => p.status === 'pending').length;
+            const winRate = total > 0 ? ((won / total) * 100).toFixed(1) : 0;
+            
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${total}</div>
+                    <div class="stat-label">Total Predicciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${won}</div>
+                    <div class="stat-label">Ganadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${lost}</div>
+                    <div class="stat-label">Perdidas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${pending}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${winRate}%</div>
+                    <div class="stat-label">% Acierto</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${chat.length}</div>
+                    <div class="stat-label">Mensajes Chat</div>
+                </div>
+            `;
+        }
+
+        // Change language
+        function changeLang() {
+            const selector = document.getElementById('langSelector');
+            currentLang = selector.value;
+            
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+        }
+
+        // Allow Enter key to login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
+
